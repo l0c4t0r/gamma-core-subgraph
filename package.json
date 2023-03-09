@@ -1,10 +1,12 @@
 {
   "name": "gamma-minimal-uniswap-polygon",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
+    "prepare:uniswap:polygon": "mustache config/UniswapV3/polygon.json template.yaml > subgraph.yaml",
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ l0c4t0r/gamma-minimal-uniswap-polygon",
+    "deploy:lab3": "graph deploy --node https://api.thegraph.com/deploy/ l0c4t0r/laboratory3",
     "create-local": "graph create --node http://localhost:8020/ l0c4t0r/gamma-minimal-uniswap-polygon",
     "remove-local": "graph remove --node http://localhost:8020/ l0c4t0r/gamma-minimal-uniswap-polygon",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 l0c4t0r/gamma-minimal-uniswap-polygon",
@@ -14,5 +16,8 @@
     "@graphprotocol/graph-cli": "0.42.4",
     "@graphprotocol/graph-ts": "0.29.1"
   },
-  "devDependencies": { "matchstick-as": "0.5.0" }
+  "devDependencies": {
+    "matchstick-as": "0.5.0",
+    "mustache": "^4.2.0"
+  }
 }

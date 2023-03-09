@@ -9,8 +9,8 @@ import {
 import { Address, BigInt } from "@graphprotocol/graph-ts"
 import { HypeAdded } from "../generated/schema"
 import { HypeAdded as HypeAddedEvent } from "../generated/HypeRegistry/HypeRegistry"
-import { handleHypeAdded } from "../src/hype-registry"
-import { createHypeAddedEvent } from "./hype-registry-utils"
+import { handleHypeAdded } from "../src/hypeRegistry"
+import { createHypeAddedEvent } from "./hypeRegistry-utils"
 
 // Tests structure (matchstick-as >=0.5.0)
 // https://thegraph.com/docs/en/developer/matchstick/#tests-structure-0-5-0

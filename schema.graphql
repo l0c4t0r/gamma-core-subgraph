@@ -1,17 +1,472 @@
-type HypeAdded @entity(immutable: true) {
+enum UnderlyingProtocol {
+  uniswapV3
+  algebra
+}
+
+enum Network {
+  mainnet
+  arbitrum
+  celo
+  matic
+  optimism
+}
+
+type Protocol @entity(immutable: true) {
+  "Only one record with id = '0'"
+  id: String!
+  "Name of protocol"
+  name: String!
+  "Underlying infrastructure protocol"
+  underlyingProtocol: UnderlyingProtocol!
+  "Network/chain"
+  network: Network!
+  "Subgraph version"
+  version: String!
+}
+
+type Token @entity(immutable: true) {
+  # token address
   id: Bytes!
-  hype: Bytes! # address
-  index: BigInt! # uint256
+  # token symbol
+  symbol: String!
+  # token name
+  name: String!
+  # token decimals
+  decimals: Int!
+}
+
+type Account @entity {
+  id: Bytes!
+  hypervisors: [HypervisorAccount!]! @derivedFrom(field: "account")
+  mcPools: [MasterChefPoolAccount!]! @derivedFrom(field: "account")
+  mcV2Pools: [MasterChefV2PoolAccount!]! @derivedFrom(field: "account")
+  mcV2RewarderPools: [MasterChefV2RewarderPoolAccount!]! @derivedFrom(field: "account")
+  hypervisorDeposits: [HypervisorDeposit!]! @derivedFrom(field: "to")
+  hypervisorWithdraws: [HypervisorWithdraw!]! @derivedFrom(field: "sender")
+  mcDeposits: [McDeposit!]! @derivedFrom(field: "user")
+  mcWithdraws: [McWithdraw!]! @derivedFrom(field: "user")
+  mcEmissionRateUpdates: [McUpdateEmissionRate!]! @derivedFrom(field: "user")
+  mcV2Deposits: [McV2Deposit!]! @derivedFrom(field: "user")
+  mcV2Withdraws: [McV2Withdraw!]! @derivedFrom(field: "user")
+  McV2EmergencyWithdraws: [McV2EmergencyWithdraw!]! @derivedFrom(field: "user")
+}
+
+type Hypervisor @entity {
+  id: Bytes!
+  onRegistry: Boolean!
+  pool: Pool!
+  token0: Token!
+  token1: Token!
+  totalSupply: BigInt!
+  accounts: [HypervisorAccount!]! @derivedFrom(field: "hypervisor")
+  mcPools: [MasterChefPool!]! @derivedFrom(field: "hypervisor")
+  mcV2Pools: [MasterChefV2Pool!]! @derivedFrom(field: "hypervisor")
+  deposits: [HypervisorDeposit!]! @derivedFrom(field: "hypervisor")
+  withdraws: [HypervisorWithdraw!]! @derivedFrom(field: "hypervisor")
+  rebalances: [HypervisorRebalance!]! @derivedFrom(field: "hypervisor")
+  zeroBurns: [HypervisorZeroBurn!]! @derivedFrom(field: "hypervisor")
+  masterChefAdds: [MasterChefAdded!]! @derivedFrom(field: "hype")
+  masterChefV2Adds: [MasterChefV2Added!]! @derivedFrom(field: "hype")
+}
+
+type Pool @entity(immutable: true) {
+  "Pool Address"
+  id: Bytes!
+  hypervisors: [Hypervisor!]! @derivedFrom(field: "pool")
+}
+
+type HypervisorAccount @entity {
+  " {hypervisor ID}-{Account}"
+  id: String!
+  hypervisor: Hypervisor!
+  account: Account!
+  shares: BigInt!
+}
+
+type MasterChef @entity {
+  id: Bytes!
+  rewardToken: Token!
+  rewardPerBlock: BigInt!
+  totalAllocPoint: BigInt!
+  pools: [MasterChefPool!]! @derivedFrom(field: "masterChef")
+}
+
+type MasterChefPool @entity {
+  id: String!
+  hypervisor: Hypervisor!
+  masterChef: MasterChef!
+  poolId: BigInt!
+  allocPoint: BigInt!
+  lastRewardBlock: BigInt!
+  stakeToken: Token!
+  totalStaked: BigInt!
+  accounts: [MasterChefPoolAccount!]! @derivedFrom(field: "pool")
+}
+
+type MasterChefPoolAccount @entity {
+  id: String!
+  account: Account!
+  pool: MasterChefPool!
+  amount: BigInt!
+}
+
+type MasterChefV2 @entity {
+  id: Bytes!
+  rewardToken: Token!
+  rewardPerSecond: BigInt!
+  totalAllocPoint: BigInt!
+  pools: [MasterChefV2Pool!]! @derivedFrom(field: "masterChef")
+  rewarders: [MasterChefV2Rewarder!]! @derivedFrom(field: "masterChef")
+}
+
+# Pools related to MasterChef V2
+type MasterChefV2Pool @entity {
+  #Hypervisor ID
+  id: String!
+  hypervisor: Hypervisor!
+  masterChef: MasterChefV2!
+  poolId: BigInt!
+  allocPoint: BigInt!
+  stakeToken: Token!
+  totalStaked: BigInt!
+  accSushiPerShare: BigInt!
+  lastRewardTimestamp: BigInt!
+  rewarderList: [String!]!
+  rewarders: [MasterChefV2RewarderPool!]! @derivedFrom(field: "pool")
+  accounts: [MasterChefV2PoolAccount!]! @derivedFrom(field: "pool")
+}
+
+# Rewarders related to MasterChef V2
+type MasterChefV2Rewarder @entity {
+  # Rewarder contract ID
+  id: String!
+  masterChef: MasterChefV2!
+  rewardToken: Token!
+  rewardPerSecond: BigInt!
+  totalAllocPoint: BigInt!
+  lastRewardTimestamp: BigInt!
+  pools: [MasterChefV2RewarderPool!]! @derivedFrom(field: "rewarder")
+}
+
+type MasterChefV2RewarderPool @entity {
+  "{Rewarder ID}-{Pool ID}"
+  id: String!
+  rewarder: MasterChefV2Rewarder!
+  pool: MasterChefV2Pool!
+  allocPoint: BigInt!
+  accounts: [MasterChefV2RewarderPoolAccount!]! @derivedFrom(field: "rewarderPool")
+}
+
+type MasterChefV2PoolAccount @entity {
+  "{Pool ID}-{Account ID}"
+  id: String!
+  account: Account!
+  pool: MasterChefV2Pool!
+  amount: BigInt!
+}
+
+type MasterChefV2RewarderPoolAccount @entity {
+  id: String!
+  account: Account!
+  rewarderPool: MasterChefV2RewarderPool!
+  amount: BigInt!
+}
+
+
+interface Transaction {
+  id: Bytes!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
 
-type HypeRemoved @entity(immutable: true) {
+type HypeAdded implements Transaction @entity(immutable: true) {
   id: Bytes!
-  hype: Bytes! # address
-  index: BigInt! # uint256
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
+  hype: Bytes!
+  index: BigInt!
+}
+
+type HypeRemoved implements Transaction @entity(immutable: true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  hype: Bytes!
+  index: BigInt!
+}
+
+type HypervisorDeposit implements Transaction @entity(immutable: true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  hypervisor: Hypervisor!
+  sender: Account!
+  to: Account!
+  shares: BigInt!
+  amount0: BigInt!
+  amount1: BigInt!
+}
+
+type HypervisorWithdraw implements Transaction @entity(immutable: true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  hypervisor: Hypervisor!
+  sender: Account!
+  to: Account!
+  shares: BigInt!
+  amount0: BigInt!
+  amount1: BigInt!
+}
+type HypervisorRebalance implements Transaction @entity(immutable: true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  hypervisor: Hypervisor!
+  tick: Int!
+  totalAmount0: BigInt!
+  totalAmount1: BigInt!
+  feeAmount0: BigInt!
+  feeAmount1: BigInt!
+  totalSupply: BigInt!
+}
+
+type HypervisorZeroBurn implements Transaction @entity(immutable: true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  hypervisor: Hypervisor!
+  fee: Int!
+  fee0: BigInt!
+  fee1: BigInt!
+}
+
+type MasterChefAdded implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChef!
+  hype: Hypervisor!
+  index: BigInt!
+}
+
+type MasterChefV2Added implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChefV2!
+  hype: Hypervisor!
+  index: BigInt!
+}
+
+type McDeposit implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChef!
+  user: Account!
+  pid: BigInt!
+  amount: BigInt!
+}
+
+type McWithdraw implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChef!
+  user: Account!
+  pid: BigInt!
+  amount: BigInt!
+}
+
+type McAddLp implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChef!
+  poolId: BigInt!
+  lpToken: Token!
+  allocPoint: BigInt!
+  lastRewardBlock: BigInt!
+  accSushiPerShare: BigInt!
+}
+
+type McSetAllocPoint implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChef!
+  poolId: BigInt!
+  lpToken: Token!
+  allocPoint: BigInt!
+  lastRewardBlock: BigInt!
+  accSushiPerShare: BigInt!
+}
+
+type McPoolUpdated implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChef!
+  poolId: BigInt!
+  lpToken: Token!
+  allocPoint: BigInt!
+  lastRewardBlock: BigInt!
+  accSushiPerShare: BigInt!
+}
+
+type McUpdateEmissionRate implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChef!
+  user: Account!
+  sushiPerBlock: BigInt!
+}
+
+
+type McV2Deposit implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChefV2!
+  user: Account!
+  pid: BigInt!
+  amount: BigInt!
+  to: Account!
+}
+
+type McV2Withdraw implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChefV2!
+  user: Account!
+  pid: BigInt!
+  amount: BigInt!
+  to: Account!
+}
+
+type McV2EmergencyWithdraw implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChefV2!
+  user: Account!
+  pid: BigInt!
+  amount: BigInt!
+  to: Account!
+}
+
+type McV2LogPoolAddition implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChefV2!
+  pid: BigInt!
+  allocPoint: BigInt!
+  lpToken: Token!
+}
+
+type McV2LogSetPool implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChefV2!
+  pid: BigInt!
+  allocPoint: BigInt!
+}
+
+type McV2LogUpdatePool implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChefV2!
+  pid: BigInt!
+  lastRewardTime: BigInt!
+  lpSupply: BigInt!
+  accSushiPerShare: BigInt!
+}
+
+type McV2LogSushiPerSecond implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChefV2!
+  sushiPerSecond: BigInt!
+}
+
+type McV2LogRewarderAdded implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  masterChef: MasterChefV2!
+  pid: BigInt!
+  rewarder: MasterChefV2Rewarder!
+}
+
+
+type RewarderLogPoolAddition implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  rewarder: MasterChefV2Rewarder!
+  pid: BigInt!
+  allocPoint: BigInt!
+}
+
+type RewarderLogSetPool implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  rewarder: MasterChefV2Rewarder!
+  pid: BigInt!
+  allocPoint: BigInt!
+}
+
+
+type RewarderLogRewardPerSecond implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  rewarder: MasterChefV2Rewarder!
+  rewardPerSecond: BigInt!
+}
+
+type RewarderLogUpdatePool implements Transaction @entity(immutable:true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  rewarder: MasterChefV2Rewarder!
+  pid: BigInt!
+  lastRewardTime: BigInt!
+  lpSupply: BigInt!
+  accSushiPerShare: BigInt!
 }

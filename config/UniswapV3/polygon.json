@@ -1,0 +1,27 @@
+{
+    "network": "matic",
+    "hypeRegistry": [
+      {
+        "name": "HypeRegistry",
+        "address": "0x0Ac4C7b794f3D7e7bF1093A4f179bA792CF15055",
+        "startBlock": 25305922
+      }
+    ],
+    "masterChefRegistry": [
+      {
+        "name": "MasterChefRegistry",
+        "address": "0x135B02F8b110Fe2Dd8B6a5e2892Ee781264c2fbe",
+        "startBlock": 31807882
+      }
+    ],
+    "masterChefV2Registry": [
+      {
+        "name": "MasterChefV2Registry",
+        "address": "0x02C8D3FCE5f072688e156F503Bd5C7396328613A",
+        "startBlock": 39885513
+      }
+    ],
+    "masterChefTemplate": true,
+    "masterChefV2Template": true
+  }
+  

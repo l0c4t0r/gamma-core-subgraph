@@ -1,16 +1,23 @@
 specVersion: 0.0.5
 features:
   - nonFatalErrors
+{{#graft}}
+  - grafting
+graft:
+  base: {{base}}
+  block: {{block}}
+{{/graft}}
 schema:
   file: ./schema.graphql
 dataSources:
-  - name: HypeRegistry
+  {{#hypeRegistry}}
+  - name: {{name}}
     kind: ethereum
-    network: matic
+    network: {{network}}
     source:
-      address: "0x0Ac4C7b794f3D7e7bF1093A4f179bA792CF15055"
+      address: "{{address}}"
       abi: HypeRegistry
-      startBlock: 25305922
+      startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -40,13 +47,15 @@ dataSources:
         - event: HypeRemoved(address,uint256)
           handler: handleHypeRemoved
       file: ./src/handlers/hypeRegistry.ts
-  - name: MasterChefRegistry
+  {{/hypeRegistry}}
+  {{#masterChefRegistry}}
+  - name: {{name}}
     kind: ethereum
-    network: matic
+    network: {{network}}
     source:
-      address: "0x135B02F8b110Fe2Dd8B6a5e2892Ee781264c2fbe"
+      address: "{{address}}"
       abi: HypeRegistry
-      startBlock: 31807882
+      startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -70,13 +79,15 @@ dataSources:
       eventHandlers:
         - event: HypeAdded(address,uint256)
           handler: handleHypeAdded
+  {{/masterChefRegistry}}
+  {{#masterChefV2Registry}}
   - name: MasterChefV2Registry
     kind: ethereum
-    network: matic
+    network: {{network}}
     source:
-      address: "0x02C8D3FCE5f072688e156F503Bd5C7396328613A"
+      address: "{{address}}"
       abi: HypeRegistry
-      startBlock: 39885513
+      startBlock: {{startBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -100,10 +111,11 @@ dataSources:
       eventHandlers:
         - event: HypeAdded(address,uint256)
           handler: handleHypeAddedV2
+  {{/masterChefV2Registry}}
 templates:
   - name: Hypervisor
     kind: ethereum
-    network: matic
+    network: {{network}}
     source:
       abi: Hypervisor
     mapping:
@@ -133,7 +145,7 @@ templates:
           handler: handleZeroBurn
   - name: MasterChef
     kind: ethereum
-    network: matic
+    network: {{network}}
     source:
       abi: MasterChef
     mapping:
@@ -179,7 +191,7 @@ templates:
           handler: handleUpdateEmissionRate
   - name: MasterChefV2
     kind: ethereum
-    network: matic
+    network: {{network}}
     source:
       abi: MasterChefV2
     mapping:
@@ -226,7 +238,7 @@ templates:
           handler: handleLogRewarderAdded
   - name: Rewarder
     kind: ethereum/contract
-    network: matic
+    network: {{network}}
     source:
       abi: MasterChefV2Rewarder
     mapping:
