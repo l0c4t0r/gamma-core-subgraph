@@ -2,7 +2,7 @@
   "name": "gamma-minimal-uniswap-polygon",
   "license": "MIT",
   "scripts": {
-    "prepare:uniswap:polygon": "mustache config/UniswapV3/polygon.json template.yaml > subgraph.yaml",
+    "prepare:uniswap:polygon": "mustache config/uniswapV3/polygon.json template.yaml > subgraph.yaml",
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ l0c4t0r/gamma-minimal-uniswap-polygon",
